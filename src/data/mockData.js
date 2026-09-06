@@ -1,0 +1,65 @@
+export const mockEvents = [
+  {
+    id: 'ev-101',
+    title: 'Clean Water Drive',
+    description: 'Deliver safe drinking water and hygiene supplies to flood-affected communities in Lahore.',
+    date: '2026-09-12T09:00:00.000Z',
+    location: 'Bait-ul-Sukoon, Lahore',
+    coordinates: [31.5204, 74.3587],
+    geofenceRadius: 200,
+    volunteersNeeded: 28,
+    organizer: 'Alkhidmat Welfare Center',
+    status: 'Live',
+  },
+  {
+    id: 'ev-102',
+    title: 'Food Pack Distribution',
+    description: 'Support community meal distribution and nutrition outreach for low-income families.',
+    date: '2026-09-15T11:30:00.000Z',
+    location: 'Gulshan-e-Ravi, Lahore',
+    coordinates: [31.4897, 74.3149],
+    geofenceRadius: 180,
+    volunteersNeeded: 18,
+    organizer: 'Alkhidmat Relief Cell',
+    status: 'Open',
+  },
+  {
+    id: 'ev-103',
+    title: 'School Supplies Drive',
+    description: 'Prepare school kits and support educational access for children in underserved neighborhoods.',
+    date: '2026-09-20T10:00:00.000Z',
+    location: 'Johar Town, Lahore',
+    coordinates: [31.4792, 74.2689],
+    geofenceRadius: 220,
+    volunteersNeeded: 32,
+    organizer: 'Education Support Wing',
+    status: 'Trending',
+  },
+  {
+    id: 'ev-104',
+    title: 'Emergency Response Drill',
+    description: 'Coordinate crowd safety and emergency readiness across a field response simulation.',
+    date: '2026-09-24T08:15:00.000Z',
+    location: 'Model Town, Lahore',
+    coordinates: [31.4917, 74.3086],
+    geofenceRadius: 250,
+    volunteersNeeded: 22,
+    organizer: 'Disaster Response Unit',
+    status: 'Live',
+  },
+]
+
+export const auditLogs = [
+  { id: 1, actor: 'System', action: 'New event created: Clean Water Drive', time: '08:45 AM', severity: 'Info' },
+  { id: 2, actor: 'Ayesha Khan', action: 'Checked in at Bait-ul-Sukoon', time: '09:12 AM', severity: 'Success' },
+  { id: 3, actor: 'Imran Ali', action: 'Manual attendance override approved', time: '10:28 AM', severity: 'Warning' },
+  { id: 4, actor: 'Team Lead', action: 'Geofence verification failed for event #ev-104', time: '11:00 AM', severity: 'Critical' },
+  { id: 5, actor: 'System', action: 'Donor portal payment status updated', time: '12:16 PM', severity: 'Info' },
+]
+
+export const attendanceTable = [
+  { id: 'V-101', volunteer: 'Ayesha Khan', event: 'Clean Water Drive', status: 'Checked In', time: '09:12 AM' },
+  { id: 'V-102', volunteer: 'Sara Malik', event: 'Food Pack Distribution', status: 'Pending', time: 'Pending' },
+  { id: 'V-103', volunteer: 'Usman Raza', event: 'School Supplies Drive', status: 'Manual Override', time: '10:55 AM' },
+  { id: 'V-104', volunteer: 'Mahnoor Ali', event: 'Emergency Response Drill', status: 'Checked In', time: '08:48 AM' },
+]
