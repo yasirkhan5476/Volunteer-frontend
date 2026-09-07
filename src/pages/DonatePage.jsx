@@ -40,27 +40,26 @@ export function DonatePage() {
     }
   }, [])
 
-  // A redirect only returns to the page; the backend remains the source of truth.
-  useEffect(() => {
-    if (searchParams.size) {
-      setSearchParams({}, { replace: true })
-    }
-  }, [searchParams, setSearchParams])
-
-  // 2. Poll backend verification endpoint every 3 seconds
-  const startPaymentPolling = (donationId, tracker) => {
+  // Poll backend verification endpoint
+  const startPaymentPolling = (donationIdOrTracker, tracker) => {
     if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current)
+
+    setStatus('PENDING')
 
     pollingIntervalRef.current = setInterval(async () => {
       try {
-        const response = await donationApi.verify(donationId)
-        const paymentState = response?.status
+        const response = await donationApi.verify(donationIdOrTracker)
+        const paymentState = response?.status || response?.data?.status
 
         if (paymentState === 'COMPLETED' || paymentState === 'PAID') {
           clearInterval(pollingIntervalRef.current)
           setStatus('SUCCESS')
-          setModalDetails({ tracker, gateway: 'SafePay' })
+          setModalDetails({ tracker: tracker || donationIdOrTracker, gateway: 'SafePay' })
           setIsModalOpen(true)
+        } else if (paymentState === 'FAILED' || paymentState === 'CANCELLED') {
+          clearInterval(pollingIntervalRef.current)
+          setStatus('FAILED')
+          setError('Payment was not completed or was cancelled.')
         }
       } catch (err) {
         console.warn('Polling verification check failed:', err)
@@ -68,7 +67,22 @@ export function DonatePage() {
     }, 3000)
   }
 
-  // 3. Initiate payment submission
+  // Handle Safepay Redirect Parameters
+  useEffect(() => {
+    const tracker = searchParams.get('tracker') || searchParams.get('beacon')
+    const orderId = searchParams.get('order_id')
+
+    if (tracker || orderId) {
+      // Start polling for payment verification immediately
+      const targetRef = tracker || orderId
+      startPaymentPolling(targetRef, tracker)
+
+      // Clean up URL parameters after capturing them
+      setSearchParams({}, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
+
+  // Initiate payment submission
   const handleSubmit = async () => {
     if (status === 'SUCCESS') return
 
@@ -114,13 +128,8 @@ export function DonatePage() {
           `https://sandbox.api.getsafepay.com/checkout/pay?beacon=${tracker}&tracker=${tracker}&env=sandbox&source=custom&passthrough=true&redirect_url=${callback}&cancel_url=${callback}`
 
         if (finalUrl) {
-          // Open payment gateway in new tab
-          window.open(finalUrl, '_blank', 'noopener,noreferrer')
-
-          // Start polling backend for payment status updates
-          if (donationId && tracker) {
-            startPaymentPolling(donationId, tracker)
-          }
+          // Redirect current window to Safepay Checkout
+          window.location.href = finalUrl
         } else {
           setError('Failed to obtain checkout URL from payment gateway.')
           setStatus('FAILED')
