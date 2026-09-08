@@ -44,6 +44,7 @@ function App() {
               <Route path="/attendance" element={<AttendancePage />} />
               <Route path="/events/:id" element={<EventDetailPage />} />
               <Route path="/donate" element={<DonatePage />} />
+              <Route path="/donate/success" element={<DonatePage />} />
               <Route path="/organizer" element={<AdminPage />} />
             </Route>
             <Route path="/admin" element={<AdminLayout />}>

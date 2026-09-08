@@ -23,8 +23,18 @@ export function DonatePage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedGateway, setSelectedGateway] = useState('SafePay')
   const [amount, setAmount] = useState(1000)
-  const [status, setStatus] = useState('IDLE') // IDLE, PENDING, SUCCESS, FAILED
-  const [error, setError] = useState('')
+  const [status, setStatus] = useState(() =>
+    searchParams.get('status') === 'cancelled'
+      ? 'FAILED'
+      : searchParams.get('tracker') ||
+          searchParams.get('beacon') ||
+          searchParams.get('order_id')
+        ? 'PENDING'
+        : 'IDLE'
+  ) // IDLE, PENDING, SUCCESS, FAILED
+  const [error, setError] = useState(() =>
+    searchParams.get('status') === 'cancelled' ? 'Payment was cancelled.' : ''
+  )
 
   // Success Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -44,9 +54,7 @@ export function DonatePage() {
   const startPaymentPolling = (donationIdOrTracker, tracker) => {
     if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current)
 
-    setStatus('PENDING')
-
-    pollingIntervalRef.current = setInterval(async () => {
+    const checkPaymentStatus = async () => {
       try {
         const response = await donationApi.verify(donationIdOrTracker)
         const paymentState = response?.status || response?.data?.status
@@ -64,11 +72,19 @@ export function DonatePage() {
       } catch (err) {
         console.warn('Polling verification check failed:', err)
       }
-    }, 3000)
+    }
+
+    checkPaymentStatus()
+    pollingIntervalRef.current = setInterval(checkPaymentStatus, 3000)
   }
 
   // Handle Safepay Redirect Parameters
   useEffect(() => {
+    if (searchParams.get('status') === 'cancelled') {
+      setSearchParams({}, { replace: true })
+      return
+    }
+
     const tracker = searchParams.get('tracker') || searchParams.get('beacon')
     const orderId = searchParams.get('order_id')
 
@@ -102,7 +118,8 @@ export function DonatePage() {
         gateway: gatewayMap[selectedGateway] || 'SAFE_PAY',
         customerEmail: currentUser?.email || 'donor@alkhidmat.org',
         customerMobile: currentUser?.phone || '+923000000000',
-        callbackUrl: `${window.location.origin}/donate`,
+        callbackUrl: `${window.location.origin}/donate/success`,
+        cancelUrl: `${window.location.origin}/donate?status=cancelled`,
       }
 
       const result = await donationApi.create(payload)
@@ -122,10 +139,15 @@ export function DonatePage() {
           result?.tracker ||
           result?.data?.tracker
 
-        const callback = encodeURIComponent(`${window.location.origin}/donate`)
+        const successUrl = encodeURIComponent(
+          `${window.location.origin}/donate/success`
+        )
+        const cancelUrl = encodeURIComponent(
+          `${window.location.origin}/donate?status=cancelled`
+        )
         const finalUrl =
           redirectUrl ||
-          `https://sandbox.api.getsafepay.com/checkout/pay?beacon=${tracker}&tracker=${tracker}&env=sandbox&source=custom&passthrough=true&redirect_url=${callback}&cancel_url=${callback}`
+          `https://sandbox.api.getsafepay.com/checkout/pay?beacon=${tracker}&tracker=${tracker}&env=sandbox&source=custom&webhooks=true&passthrough=true&redirect_url=${successUrl}&success_url=${successUrl}&cancel_url=${cancelUrl}`
 
         if (finalUrl) {
           // Redirect current window to Safepay Checkout
@@ -242,7 +264,7 @@ export function DonatePage() {
                   }`}
                 >
                   <div
-                    className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${gateway.accent} text-lg font-bold text-white`}
+                    className={`flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br ${gateway.accent} text-lg font-bold text-white`}
                   >
                     {gateway.icon}
                   </div>
@@ -313,7 +335,7 @@ export function DonatePage() {
           className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
             status === 'SUCCESS'
               ? 'bg-emerald-500 text-slate-950 cursor-default'
-              : 'bg-gradient-to-r from-emerald-400 to-cyan-500 text-slate-950 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70'
+              : 'bg-linear-to-r from-emerald-400 to-cyan-500 text-slate-950 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70'
           }`}
         >
           {status === 'SUCCESS' ? (
