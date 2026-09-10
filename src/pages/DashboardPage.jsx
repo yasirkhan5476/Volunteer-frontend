@@ -1,5 +1,6 @@
 import { Award, Clock3, Sparkles, Users } from 'lucide-react'
 import { VolunteerPassportCard } from '../components/VolunteerPassportCard'
+import { ProfileImageUpload } from '../components/ProfileImageUpload'
 import { OrganizerStatusBanner } from '../components/OrganizerStatusBanner'
 import { useMyAttendance, useMyPassports } from '../hooks/usePlatformData'
 import { useAuthStore } from '../store/authStore'
@@ -52,6 +53,9 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <OrganizerStatusBanner role={currentUser?.role} />
+      <section className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-slate-950/20">
+        <ProfileImageUpload user={currentUser} />
+      </section>
       {/* ─── Welcome banner ─── */}
       <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-slate-900 to-cyan-500/5 px-5 py-4">
         <p className="text-xs uppercase tracking-[0.22em] text-emerald-300">Your dashboard</p>

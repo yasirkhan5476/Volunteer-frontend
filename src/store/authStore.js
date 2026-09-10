@@ -24,6 +24,8 @@ export const useAuthStore = create(
           isAuthenticated: false,
         })
       },
+      updateUser: (updates) =>
+        set((state) => ({ user: state.user ? { ...state.user, ...updates } : state.user })),
       hydrateFromSession: (payload) => {
         const current = get()
         set({

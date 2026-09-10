@@ -110,6 +110,19 @@ export const authApi = {
   listUsers: (params = {}) => api.get('/auth/users', { params }).then(normalizeResponse),
 }
 
+export const profileApi = {
+  uploadImage: (file) => {
+    const formData = new FormData()
+    formData.append('profile_image', file)
+
+    return api
+      .post('/users/profile-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then(normalizeResponse)
+  },
+}
+
 export const adminApi = {
   analytics: () => api.get('/admin/analytics').then(normalizeResponse),
   listApprovals: () => api.get('/admin/approvals').then(normalizeResponse),
@@ -138,7 +151,7 @@ export const attendanceApi = {
 export const donationApi = {
   create: (payload) => api.post('/donations', payload).then(normalizeResponse),
   myDonations: () => api.get('/donations/my').then(normalizeResponse),
-  verify: (donationId) => api.get(`/donations/${donationId}/status`).then(normalizeResponse),
+  verify: (donationId) => api.get(`/donations/verify/${donationId}`).then(normalizeResponse),
 }
 
 // ─── Passport API ────────────────────────────────────────────

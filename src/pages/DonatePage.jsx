@@ -26,11 +26,9 @@ export function DonatePage() {
   const [status, setStatus] = useState(() =>
     searchParams.get('status') === 'cancelled'
       ? 'FAILED'
-      : searchParams.get('tracker') ||
-          searchParams.get('beacon') ||
-          searchParams.get('order_id')
+      : searchParams.get('tracker') || searchParams.get('order_id')
         ? 'PENDING'
-        : 'IDLE'
+        : 'IDLE',
   ) // IDLE, PENDING, SUCCESS, FAILED
   const [error, setError] = useState(() =>
     searchParams.get('status') === 'cancelled' ? 'Payment was cancelled.' : ''
@@ -51,18 +49,23 @@ export function DonatePage() {
   }, [])
 
   // Poll backend verification endpoint
-  const startPaymentPolling = (donationIdOrTracker, tracker) => {
+  const startPaymentPolling = (trackerOrOrderId) => {
     if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current)
 
     const checkPaymentStatus = async () => {
       try {
-        const response = await donationApi.verify(donationIdOrTracker)
-        const paymentState = response?.status || response?.data?.status
+        const response = await donationApi.verify(trackerOrOrderId)
+        const statusValue =
+          response?.status ||
+          response?.data?.status ||
+          response?.data?.data?.status ||
+          ''
+        const paymentState = String(statusValue).toUpperCase()
 
-        if (paymentState === 'COMPLETED' || paymentState === 'PAID') {
+        if (paymentState === 'COMPLETED' || paymentState === 'SUCCESS') {
           clearInterval(pollingIntervalRef.current)
           setStatus('SUCCESS')
-          setModalDetails({ tracker: tracker || donationIdOrTracker, gateway: 'SafePay' })
+          setModalDetails({ tracker: trackerOrOrderId, gateway: 'SafePay' })
           setIsModalOpen(true)
         } else if (paymentState === 'FAILED' || paymentState === 'CANCELLED') {
           clearInterval(pollingIntervalRef.current)
@@ -75,7 +78,7 @@ export function DonatePage() {
     }
 
     checkPaymentStatus()
-    pollingIntervalRef.current = setInterval(checkPaymentStatus, 3000)
+    pollingIntervalRef.current = setInterval(checkPaymentStatus, 1500)
   }
 
   // Handle Safepay Redirect Parameters
@@ -85,13 +88,10 @@ export function DonatePage() {
       return
     }
 
-    const tracker = searchParams.get('tracker') || searchParams.get('beacon')
-    const orderId = searchParams.get('order_id')
+    const tracker = searchParams.get('tracker') || searchParams.get('order_id')
 
-    if (tracker || orderId) {
-      // Start polling for payment verification immediately
-      const targetRef = tracker || orderId
-      startPaymentPolling(targetRef, tracker)
+    if (tracker) {
+      startPaymentPolling(tracker)
 
       // Clean up URL parameters after capturing them
       setSearchParams({}, { replace: true })
@@ -118,7 +118,7 @@ export function DonatePage() {
         gateway: gatewayMap[selectedGateway] || 'SAFE_PAY',
         customerEmail: currentUser?.email || 'donor@alkhidmat.org',
         customerMobile: currentUser?.phone || '+923000000000',
-        callbackUrl: `${window.location.origin}/donate/success`,
+        callbackUrl: `${window.location.origin}/donate/callback`,
         cancelUrl: `${window.location.origin}/donate?status=cancelled`,
       }
 
@@ -133,25 +133,9 @@ export function DonatePage() {
           result?.data?.redirectUrl ||
           result?.data?.data?.redirectUrl
 
-        const tracker =
-          result?.gatewayRef ||
-          result?.data?.gatewayRef ||
-          result?.tracker ||
-          result?.data?.tracker
-
-        const successUrl = encodeURIComponent(
-          `${window.location.origin}/donate/success`
-        )
-        const cancelUrl = encodeURIComponent(
-          `${window.location.origin}/donate?status=cancelled`
-        )
-        const finalUrl =
-          redirectUrl ||
-          `https://sandbox.api.getsafepay.com/checkout/pay?beacon=${tracker}&tracker=${tracker}&env=sandbox&source=custom&webhooks=true&passthrough=true&redirect_url=${successUrl}&success_url=${successUrl}&cancel_url=${cancelUrl}`
-
-        if (finalUrl) {
+        if (redirectUrl) {
           // Redirect current window to Safepay Checkout
-          window.location.href = finalUrl
+          window.location.href = redirectUrl
         } else {
           setError('Failed to obtain checkout URL from payment gateway.')
           setStatus('FAILED')

@@ -26,6 +26,7 @@ export function Layout() {
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
   const role = user?.role || 'VOLUNTEER'
+  const profileImageUrl = user?.profile_image_url || user?.volunteerProfile?.avatarUrl
 
   // Build display name — backend returns firstName + lastName (and fullName as a computed field)
   const displayName =
@@ -79,8 +80,12 @@ export function Layout() {
           {/* ─── User card ─── */}
           <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/20 text-indigo-200">
-                <UserCircle2 size={20} />
+              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-indigo-500/20 text-indigo-200">
+                {profileImageUrl ? (
+                  <img src={profileImageUrl} alt="Profile" className="h-full w-full object-cover" />
+                ) : (
+                  <UserCircle2 size={20} />
+                )}
               </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-white">{displayName}</p>

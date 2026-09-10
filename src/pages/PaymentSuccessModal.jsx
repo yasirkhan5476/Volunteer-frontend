@@ -18,7 +18,7 @@ export function PaymentSuccessModal({ isOpen, onClose, transactionId, amount, ga
             <CheckCircle2 size={40} />
           </div>
 
-          <h3 className="mt-4 text-xl font-bold text-white">Payment Successful!</h3>
+          <h3 className="mt-4 text-xl font-bold text-white">Payment successful.</h3>
           <p className="mt-1 text-sm text-slate-400">
             Thank you for your generous contribution.
           </p>
