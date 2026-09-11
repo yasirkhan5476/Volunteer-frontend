@@ -6,15 +6,11 @@ export function usePlatformStats() {
   return useQuery({
     queryKey: ['auth', 'stats'],
     queryFn: async () => {
-      try {
-        const data = await authApi.getStats()
-        const result = data && typeof data === 'object' ? data : {}
-        return {
-          volunteers: Number(result.volunteers ?? 0),
-          organizers: Number(result.organizers ?? 0),
-        }
-      } catch {
-        return { volunteers: 0, organizers: 0 }
+      const data = await authApi.getStats()
+      const result = data && typeof data === 'object' ? data : {}
+      return {
+        volunteers: Number(result.volunteers ?? 0),
+        organizers: Number(result.organizers ?? 0),
       }
     },
     staleTime: 1000 * 60,
@@ -25,13 +21,7 @@ export function usePlatformStats() {
 export function useCurrentUser() {
   return useQuery({
     queryKey: ['auth', 'me'],
-    queryFn: async () => {
-      try {
-        return await authApi.getMe()
-      } catch {
-        return null
-      }
-    },
+    queryFn: authApi.getMe,
     staleTime: 1000 * 60,
   })
 }
@@ -41,18 +31,11 @@ export function useEvents() {
   return useQuery({
     queryKey: ['events'],
     queryFn: async () => {
-      try {
-        const data = await eventsApi.list({ page: 1, limit: 20 })
-
-        // Handle paginated response: { items: [...] } or { data: [...] } or plain array
-        if (Array.isArray(data)) return data
-        if (Array.isArray(data?.items)) return data.items
-        if (Array.isArray(data?.data)) return data.data
-
-        return []
-      } catch {
-        return []
-      }
+      const data = await eventsApi.list({ page: 1, limit: 20 })
+      if (Array.isArray(data)) return data
+      if (Array.isArray(data?.items)) return data.items
+      if (Array.isArray(data?.data)) return data.data
+      return []
     },
     staleTime: 1000 * 30,
   })
@@ -62,13 +45,7 @@ export function useEventById(id) {
   return useQuery({
     queryKey: ['event', id],
     enabled: Boolean(id),
-    queryFn: async () => {
-      try {
-        return await eventsApi.getById(id) ?? null
-      } catch {
-        return null
-      }
-    },
+    queryFn: () => eventsApi.getById(id),
     staleTime: 1000 * 30,
   })
 }
@@ -78,15 +55,11 @@ export function useMyAttendance() {
   return useQuery({
     queryKey: ['attendance', 'my'],
     queryFn: async () => {
-      try {
-        const data = await attendanceApi.myAttendance({ page: 1, limit: 50 })
-        if (Array.isArray(data)) return data
-        if (Array.isArray(data?.items)) return data.items
-        if (Array.isArray(data?.data)) return data.data
-        return []
-      } catch {
-        return []
-      }
+      const data = await attendanceApi.myAttendance({ page: 1, limit: 50 })
+      if (Array.isArray(data)) return data
+      if (Array.isArray(data?.items)) return data.items
+      if (Array.isArray(data?.data)) return data.data
+      return []
     },
     staleTime: 1000 * 30,
   })
@@ -97,14 +70,10 @@ export function useAdminAttendance(params = {}) {
   return useQuery({
     queryKey: ['attendance', 'all', params],
     queryFn: async () => {
-      try {
-        const data = await attendanceApi.allAttendance({ page: 1, limit: 100, ...params })
-        if (Array.isArray(data)) return data
-        if (Array.isArray(data?.items)) return data.items
-        return []
-      } catch {
-        return []
-      }
+      const data = await attendanceApi.allAttendance({ page: 1, limit: 100, ...params })
+      if (Array.isArray(data)) return data
+      if (Array.isArray(data?.items)) return data.items
+      return []
     },
     staleTime: 1000 * 30,
   })
@@ -115,13 +84,9 @@ export function useMyDonations() {
   return useQuery({
     queryKey: ['donations', 'my'],
     queryFn: async () => {
-      try {
-        const data = await donationApi.myDonations()
-        if (Array.isArray(data)) return data
-        return []
-      } catch {
-        return []
-      }
+      const data = await donationApi.myDonations()
+      if (Array.isArray(data)) return data
+      return []
     },
     staleTime: 1000 * 30,
   })
@@ -132,13 +97,9 @@ export function useMyPassports() {
   return useQuery({
     queryKey: ['passport', 'my'],
     queryFn: async () => {
-      try {
-        const data = await passportApi.myPassports()
-        if (Array.isArray(data)) return data
-        return []
-      } catch {
-        return []
-      }
+      const data = await passportApi.myPassports()
+      if (Array.isArray(data)) return data
+      return []
     },
     staleTime: 1000 * 30,
   })
@@ -149,13 +110,9 @@ export function useAdminUsers(params = {}) {
   return useQuery({
     queryKey: ['admin', 'users', params],
     queryFn: async () => {
-      try {
-        const data = await authApi.listUsers(params)
-        if (Array.isArray(data)) return data
-        return []
-      } catch {
-        return []
-      }
+      const data = await authApi.listUsers(params)
+      if (Array.isArray(data)) return data
+      return []
     },
     staleTime: 1000 * 30,
   })

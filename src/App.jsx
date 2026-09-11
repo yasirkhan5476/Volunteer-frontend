@@ -15,6 +15,7 @@ import { AdminLayout } from './components/AdminLayout'
 import { AdminApprovalQueue } from './pages/AdminApprovalQueue'
 import { AdminDashboard } from './pages/AdminDashboard'
 import { AttendancePage } from './pages/AttendancePage'
+import { PublicOnlyRoute } from './components/PublicOnlyRoute'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,10 +32,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route element={<PublicOnlyRoute />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+          </Route>
 
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>

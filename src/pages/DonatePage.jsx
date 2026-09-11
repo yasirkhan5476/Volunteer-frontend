@@ -22,6 +22,7 @@ export function DonatePage() {
 
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedGateway, setSelectedGateway] = useState('SafePay')
+  const [selectedEventId, setSelectedEventId] = useState('')
   const [amount, setAmount] = useState(1000)
   const [status, setStatus] = useState(() =>
     searchParams.get('status') === 'cancelled'
@@ -102,8 +103,13 @@ export function DonatePage() {
   const handleSubmit = async () => {
     if (status === 'SUCCESS') return
 
-    if (!amount || Number(amount) < 1) {
-      setError('Please enter a valid donation amount.')
+    if (!selectedEventId) {
+      setError('Please select an event for this donation.')
+      return
+    }
+
+    if (!amount || Number(amount) < 100) {
+      setError('Donation amount must be at least PKR 100.')
       return
     }
 
@@ -112,7 +118,7 @@ export function DonatePage() {
 
     try {
       const payload = {
-        eventId: events[0]?.id || currentUser?.id,
+        eventId: selectedEventId,
         amount: Number(amount),
         currency: 'PKR',
         gateway: gatewayMap[selectedGateway] || 'SAFE_PAY',
@@ -186,6 +192,20 @@ export function DonatePage() {
         </div>
 
         <div className="mt-6 space-y-5">
+          <div>
+            <label htmlFor="donation-event" className="mb-2 block text-sm font-medium text-slate-300">Support an event</label>
+            <select
+              id="donation-event"
+              value={selectedEventId}
+              onChange={(event) => setSelectedEventId(event.target.value)}
+              disabled={status === 'SUCCESS'}
+              className="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-slate-100 outline-none focus:border-emerald-500 disabled:opacity-50"
+            >
+              <option value="">Select an event</option>
+              {events.map((event) => <option key={event.id} value={event.id}>{event.title}</option>)}
+            </select>
+          </div>
+
           {/* Amount presets */}
           <div>
             <p className="mb-3 text-sm font-medium text-slate-300">
@@ -221,7 +241,7 @@ export function DonatePage() {
             <input
               id="customAmount"
               type="number"
-              min="1"
+              min="100"
               disabled={status === 'SUCCESS'}
               value={amount}
               onChange={(event) => setAmount(Number(event.target.value))}

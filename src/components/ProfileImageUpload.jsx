@@ -1,5 +1,5 @@
 import { Camera, LoaderCircle, UserCircle2 } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { profileApi } from '../services/api'
 import { useAuthStore } from '../store/authStore'
 
@@ -9,11 +9,14 @@ const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/jpg']
 export function ProfileImageUpload({ user }) {
   const fileInputRef = useRef(null)
   const updateUser = useAuthStore((state) => state.updateUser)
-  const [imageUrl, setImageUrl] = useState(
-    user?.profile_image_url || user?.volunteerProfile?.avatarUrl || '',
-  )
+  const profileImageUrl = user?.profile_image_url || user?.volunteerProfile?.avatarUrl || ''
+  const [imageUrl, setImageUrl] = useState(profileImageUrl)
   const [error, setError] = useState('')
   const [isUploading, setIsUploading] = useState(false)
+
+  useEffect(() => {
+    setImageUrl(profileImageUrl)
+  }, [profileImageUrl])
 
   const handleFileChange = async (event) => {
     const file = event.target.files?.[0]

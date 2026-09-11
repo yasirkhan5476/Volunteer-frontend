@@ -4,11 +4,18 @@ import { ProfileImageUpload } from '../components/ProfileImageUpload'
 import { OrganizerStatusBanner } from '../components/OrganizerStatusBanner'
 import { useMyAttendance, useMyPassports } from '../hooks/usePlatformData'
 import { useAuthStore } from '../store/authStore'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { passportApi } from '../services/api'
 
 export function DashboardPage() {
   const { data: attendance = [] } = useMyAttendance()
   const { data: passports = [] } = useMyPassports()
   const currentUser = useAuthStore((state) => state.user)
+  const queryClient = useQueryClient()
+  const issuePassport = useMutation({
+    mutationFn: () => passportApi.issue({ validityMonths: 12 }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['passport', 'my'] }),
+  })
 
   // Build display name from backend response (firstName + lastName, or fullName)
   const volunteerName = currentUser
@@ -110,6 +117,10 @@ export function DashboardPage() {
               badge: passports.length > 0 ? 'Verified' : 'Bronze',
               hours: totalHours,
             }}
+            passport={passports[0]}
+            onIssue={() => issuePassport.mutate()}
+            isIssuing={issuePassport.isPending}
+            issueError={issuePassport.error?.response?.data?.message || issuePassport.error?.message || ''}
           />
         </div>
 

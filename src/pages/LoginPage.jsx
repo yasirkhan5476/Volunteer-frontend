@@ -64,7 +64,7 @@ export function LoginPage() {
       setForm({ email: '', password: '' })
       setShowPassword(false)
       setSuccess(`Welcome back${firstName ? `, ${firstName}` : ''}! Redirecting…`)
-      setTimeout(() => navigate('/dashboard'), 800)
+      navigate('/dashboard', { replace: true })
     } catch (err) {
       setError(err?.response?.data?.message || 'Login failed. Please check your credentials.')
     } finally {
