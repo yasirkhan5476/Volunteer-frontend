@@ -37,7 +37,10 @@ export function LoginPage() {
 
     try {
       // Step 1: Login → get tokens + basic user
-      const data = await authApi.login({ email: form.email, password: form.password })
+      const data = await authApi.login({
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      })
 
       // Store tokens immediately so /auth/me has the Bearer header
       login({
